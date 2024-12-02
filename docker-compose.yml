@@ -1,0 +1,33 @@
+services:
+  kuma:
+    container_name: uptime-kuma
+    image: louislam/uptime-kuma:latest
+    ports:
+      - "3069:3001"
+    restart: always
+    volumes:
+      - uptime-kuma:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3069"]
+      interval: 1s
+      timeout: 10s
+      retries: 3
+
+  uptime:
+    build: .
+    depends_on: 
+      - kuma
+    environment:
+      UK_STATE: "present"
+      UK_ELEMENT: "monitor"
+      UK_API_URL: "http://192.168.1.163:3069"
+      UK_USERNAME: "test"
+      UK_PASSWORD: "Asdffdsa1!"
+      UK_NAME: "test"
+      UK_TYPE: "http"
+      UK_URL: "https://google.com"
+
+
+
+volumes:
+  uptime-kuma:

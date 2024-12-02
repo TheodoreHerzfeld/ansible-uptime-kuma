@@ -1,0 +1,49 @@
+- name: "Uptime-kuma"
+  hosts: localhost
+  gather_facts: false
+  vars:
+    state: "{{ lookup('env', 'UK_STATE') }}"
+    element: "{{ lookup('env', 'UK_ELEMENT') }}"
+    api_url: "{{ lookup('env', 'UK_API_URL') }}"
+    username: "{{ lookup('env', 'UK_USERNAME') }}"
+    password: "{{ lookup('env', 'UK_PASSWORD') }}"
+
+    el_name: "{{ lookup('env', 'UK_NAME') }}"
+    type: "{{ lookup('env', 'UK_TYPE') }}"
+    url: "{{ lookup('env', 'UK_URL') }}"
+  tasks:
+    - name: debug task info
+      debug:
+        var: "{{ item }}"
+      loop:
+        - state
+        - element
+        - api_url
+        - username
+        - el_name
+        - type
+        - url
+      
+    - name: wait for uptime-kuma
+      uri:
+        url: "{{ api_url }}"
+        timeout: 1
+        return_content: true
+        validate_certs: false
+        status_code:
+          - 200
+      register: uk_check
+      retries: 30
+      delay: 1
+      until: uk_check.status == 200
+
+    - name: Monitor
+      lucasheld.uptime_kuma.monitor:
+        api_url: "{{ api_url }}"
+        api_username: "{{ username }}"
+        api_password: "{{ password }}"
+        name: "{{ el_name }}"
+        type: "{{ type }}"
+        state: "{{ state }}"
+        url: "{{ url }}"
+      when: element == "monitor"
